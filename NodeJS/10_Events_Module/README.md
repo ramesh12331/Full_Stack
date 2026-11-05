@@ -823,4 +823,4 @@ Chapter 10 lesson complete
 
 STOP — Practise this chapter and solve the mini challenge.
 
-Type NEXT when you are ready for Chapter 11 — Node.js URL Module.
+Type NEXT when you are ready for Chapter 11 — Node.js URL Module
