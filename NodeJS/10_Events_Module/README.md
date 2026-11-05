@@ -1,681 +1,826 @@
-# 🎯 Chapter 10 — Node.js Events Module
+# 📘 Chapter 10 — Node.js Events Module
 
-![Node.js](https://img.shields.io/badge/Node.js-Events%20Module-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![Level](https://img.shields.io/badge/Level-Beginner%20to%20Intermediate-blue?style=for-the-badge)
 
-> Learn event-driven programming in Node.js using the built-in `EventEmitter` class.
 
----
+Beginner to Advanced
 
-## 📚 Table of Contents
+Node.js
 
-- [1. Event-Driven Programming](#1--event-driven-programming)
-- [2. EventEmitter](#2--eventemitter)
-- [3. The `.on()` Method](#3--the-on-method)
-- [4. The `.emit()` Method](#4--the-emit-method)
-- [5. The `.once()` Method](#5--the-once-method)
-- [6. The `.off()` Method](#6--the-off-method)
-- [7. Custom Events](#7--custom-events)
-- [8. Passing Data with Events](#8--passing-data-with-events)
-- [9. Event-Driven Architecture](#9--event-driven-architecture)
-- [10. Practical Example](#10--practical-example)
-- [11. Important EventEmitter APIs](#11--important-eventemitter-apis)
-- [12. Practice Exercises](#12--practice-exercises)
-- [13. Interview Questions](#13--interview-questions)
-- [14. Chapter Summary](#14--chapter-summary)
+One Chapter at a Time
 
----
 
-## 1. 🔄 Event-Driven Programming
 
-**Event-driven programming** is a programming approach in which the flow of a program is controlled by events and the code that responds to those events.
+In this chapter, we will learn how Node.js handles events using the built-in `EventEmitter` class.
 
-An **event** is an action or occurrence that a program can detect.
+Topics covered:
 
-### 🌍 Real-world examples
+1. Event-driven programming
+2. EventEmitter
+3. `.on()`
+4. `.emit()`
+5. `.once()`
+6. `.off()`
+7. Custom events
+8. Event-driven architecture
+
+## 1. What is it? 🤔
+
+Event-driven programming is a programming approach where the execution of code depends on events.
+
+An event is an action or occurrence that happens in a program.
+
+Examples:
 
 - A user clicks a button.
-- A file finishes loading.
+- A user logs into an application.
+- A file finishes uploading.
+- A payment is completed.
 - A server receives a request.
-- A database connection is established.
-- A timer completes.
 
-### 🛎️ Doorbell example
+In Node.js, we use the built-in `events` module to create and handle events.
 
-1. A visitor presses the doorbell button.
+The main class is called EventEmitter.
+
+Simple definition:
+
+> EventEmitter allows us to create events, listen for events, and execute callback functions when events occur.
+
+## 2. Why do we need it? 🎯
+
+Imagine you are developing an e-commerce application.
+
+When a customer places an order, several actions must happen:
+
+- Send an order confirmation email.
+- Update product stock.
+- Save order information.
+- Send a notification.
+- Update sales analytics.
+
+Without an event-based approach, the order functionality might need to directly manage all these operations.
+
+This can make the code tightly coupled and difficult to maintain.
+
+With EventEmitter:
+
+- The order system emits an `orderPlaced` event.
+- Different listeners respond to that event.
+- Each listener performs its own task.
+
+Problem solved: Different parts of an application can respond to the same event without the event producer needing to manage every listener.
+
+## 3. Real-world analogy 🛎️
+
+Think about a doorbell.
+
+[hand pressing on ringing bell near building entrance](https://images.openai.com/static-rsc-4/T7M21sdA7BmM-GsEPuV5RZ0MNVwRrVrpacP-fPVqIwKsMPiiTXfMLoSBU-zOPlDnTcagIzZIiI-XeO7OjJgScW4MF31uPG-woETOgYuoQT_Pk_frScYQO5oDZRH7sJJ1hOmelcNRVYrGg65rair9V1Mbb3RIPrOYma_M3M1IANj3VXPWDs83Zpnq9GoBLScQ?purpose=inline)
+
+How does it work?
+
+1. A visitor presses the doorbell.
 2. The doorbell produces a sound.
-3. Someone inside hears the sound and responds.
+3. People inside hear the sound.
+4. Someone responds by opening the door.
 
-| Real world | Programming |
-|---|---|
-| Pressing the doorbell | Emitting an event |
-| Doorbell sound | Event notification |
-| Person responding | Event listener / handler |
+Programming comparison:
 
-**Key idea:** A listener waits for an event. When that event is emitted, its callback function executes.
+| Doorbell                | Node.js                    |
+| ----------------------- | -------------------------- |
+| Doorbell button pressed | Event emitted              |
+| Doorbell sound          | Event notification         |
+| Person waiting          | Event listener             |
+| Person responds         | Callback function executes |
 
----
+Remember:
 
-## 2. 📦 EventEmitter
+- `.on()` → Wait for an event.
+- `.emit()` → Trigger an event.
+- Callback → Execute when the event occurs.
 
-Node.js provides a built-in `events` module. Its `EventEmitter` class lets us create, emit, and listen for custom events.
+## 4. Architecture / Flow 🏗️
 
-No package installation is required.
+Let's understand the basic EventEmitter flow.
 
-### Import EventEmitter
+1\. Create EventEmitter
 
-**CommonJS:**
+new EventEmitter()
 
-```js
+2\. Register Listener
+
+emitter.on("eventName", callback)
+
+3\. Emit Event
+
+emitter.emit("eventName")
+
+4\. Execute Callback
+
+Listener callback runs
+
+Flow: Create → Register → Emit → Execute.
+
+## 5. Syntax 📝
+
+### Step 1: Import EventEmitter
+
+```
 const EventEmitter = require("events");
 ```
 
-**ES Modules:**
+### Step 2: Create an instance
 
-```js
-import { EventEmitter } from "node:events";
 ```
-
-### Create an EventEmitter instance
-
-```js
-const EventEmitter = require("events");
-
-// Create an EventEmitter object
 const emitter = new EventEmitter();
-
-console.log("EventEmitter is ready!");
 ```
 
-**Output:**
+### Step 3: Register an event listener
 
-```text
-EventEmitter is ready!
 ```
-
-The `emitter` object can register listeners and emit events.
-
----
-
-## 3. 👂 The `.on()` Method
-
-The `.on()` method registers a listener for an event. Its callback runs whenever that event is emitted.
-
-### Syntax
-
-```js
-emitter.on(eventName, callback);
-```
-
-### Example
-
-Create `on-example.js`:
-
-```js
-const EventEmitter = require("events");
-
-const emitter = new EventEmitter();
-
-// Register a listener for the "greet" event
 emitter.on("greet", () => {
-    console.log("Hello! Welcome to Node.js Events.");
+    console.log("Hello!");
 });
+```
 
-// Emit the event
+### Step 4: Emit the event
+
+```
 emitter.emit("greet");
 ```
 
-**Output:**
+Important: The `events` module is built into Node.js. You do not need to install it using npm.
 
-```text
-Hello! Welcome to Node.js Events.
+## 6. Basic Example 💻
+
+Create a file:
+
+`events.js`
+
+```
+// Step 1: Import EventEmitter
+const EventEmitter = require("events");
+
+// Step 2: Create EventEmitter instance
+const emitter = new EventEmitter();
+
+// Step 3: Register an event listener
+emitter.on("greet", () => {
+    console.log("Hello Ramesh!");
+});
+
+// Step 4: Trigger the event
+emitter.emit("greet");
 ```
 
-### 🔍 Execution flow
+## 7. Dry Run 🔍
 
-1. `new EventEmitter()` creates an event emitter.
-2. `on("greet", callback)` registers a listener.
-3. `emit("greet")` emits the event.
-4. The registered callback executes.
+Let's execute the program step by step.
 
-**Remember:** Register the listener before emitting the event if you want it to receive that emission.
+| Step | Code                    | What happens?             |
+| ---- | ----------------------- | ------------------------- |
+| 1    | `require("events")`     | Imports EventEmitter      |
+| 2    | `new EventEmitter()`    | Creates an emitter object |
+| 3    | `on("greet", callback)` | Registers a listener      |
+| 4    | `emit("greet")`         | Triggers the event        |
+| 5    | Callback executes       | Prints the message        |
 
----
+Understand this carefully:
 
-## 4. 📢 The `.emit()` Method
+When JavaScript reaches:
 
-The `.emit()` method triggers an event. It calls the listeners currently registered for that event.
-
-### Syntax
-
-```js
-emitter.emit(eventName, ...arguments);
+```
+emitter.on("greet", () => {
+    console.log("Hello Ramesh!");
+});
 ```
 
-### Example
+The callback is registered. It does not execute immediately.
 
-```js
+When JavaScript reaches:
+
+```
+emitter.emit("greet");
+```
+
+The registered callback executes.
+
+## 8. Output 🖥️
+
+```
+Hello Ramesh!
+```
+
+Run in VS Code:
+
+```
+node events.js
+```
+
+## 9. Line-by-line explanation 📖
+
+```
+const EventEmitter = require("events");
+```
+
+Imports Node.js's built-in events module.
+
+```
+const emitter = new EventEmitter();
+```
+
+Creates an object that can manage events and listeners.
+
+```
+emitter.on("greet", () => {
+    console.log("Hello Ramesh!");
+});
+```
+
+Registers a callback function for the event named `greet`.
+
+```
+emitter.emit("greet");
+```
+
+Triggers the `greet` event and executes its registered listener.
+
+Key difference:
+
+- `on()` registers.
+- `emit()` triggers.
+
+## 10. Practical examples 🚀
+
+Now let's understand each important EventEmitter method.
+
+### A. `.on()` — Listen to an event
+
+Definition: Registers a listener that executes whenever the specified event is emitted.
+
+Syntax:
+
+```
+emitter.on("eventName", callback);
+```
+
+Example:
+
+```
 const EventEmitter = require("events");
 
 const emitter = new EventEmitter();
 
-emitter.on("welcome", () => {
-    console.log("Welcome event received!");
+// Register listener
+emitter.on("login", () => {
+    console.log("User logged in successfully!");
 });
 
-// Trigger the event
-const wasHandled = emitter.emit("welcome");
-
-console.log("Was the event handled?", wasHandled);
-```
-
-**Output:**
-
-```text
-Welcome event received!
-Was the event handled? true
-```
-
-`emit()` returns `true` if at least one listener was called, and `false` if no listener was registered for that event.
-
-### Multiple listeners for the same event
-
-```js
-const EventEmitter = require("events");
-
-const emitter = new EventEmitter();
-
-emitter.on("message", () => {
-    console.log("Listener 1 executed");
-});
-
-emitter.on("message", () => {
-    console.log("Listener 2 executed");
-});
-
-emitter.emit("message");
-```
-
-**Output:**
-
-```text
-Listener 1 executed
-Listener 2 executed
-```
-
-Listeners are normally called synchronously in registration order.
-
----
-
-## 5. ☝️ The `.once()` Method
-
-The `.once()` method registers a listener that runs only **one time** for that event. After it runs, it is automatically removed.
-
-### Syntax
-
-```js
-emitter.once(eventName, callback);
-```
-
-### Example
-
-```js
-const EventEmitter = require("events");
-
-const emitter = new EventEmitter();
-
-// This listener executes only once
-emitter.once("login", () => {
-    console.log("User logged in!");
-});
-
-// Emit the same event three times
+// Emit event
 emitter.emit("login");
 emitter.emit("login");
 emitter.emit("login");
 ```
 
-**Output:**
+Output:
 
-```text
-User logged in!
+```
+User logged in successfully!
+User logged in successfully!
+User logged in successfully!
 ```
 
-### 💡 When is `.once()` useful?
+Explanation: Every time `login` is emitted, the listener executes.
 
-- One-time initialization.
-- First successful connection notification.
-- Handling a one-time setup event.
-- Running an action only on the first occurrence.
+### B. `.emit()` — Trigger an event
 
----
+Definition: Triggers an event and calls its registered listeners.
 
-## 6. 🚫 The `.off()` Method
+Syntax:
 
-The `.off()` method removes a previously registered listener. It is an alias for `.removeListener()`.
-
-To remove a listener, pass the **same function reference** that was registered.
-
-### Syntax
-
-```js
-emitter.off(eventName, listener);
+```
+emitter.emit("eventName");
 ```
 
-### Example
+Example:
 
-```js
+```
 const EventEmitter = require("events");
 
 const emitter = new EventEmitter();
 
-// Define a named listener
+emitter.on("payment", () => {
+    console.log("Payment completed!");
+});
+
+// Trigger payment event
+const result = emitter.emit("payment");
+
+console.log("Event handled:", result);
+```
+
+Output:
+
+```
+Payment completed!
+Event handled: true
+```
+
+`emit()` returns:
+
+- `true` if at least one listener was called.
+- `false` if no listener was registered.
+
+### C. `.once()` — Execute only one time
+
+Definition: Registers a listener that executes only once, then removes itself.
+
+Syntax:
+
+```
+emitter.once("eventName", callback);
+```
+
+Example:
+
+```
+const EventEmitter = require("events");
+
+const emitter = new EventEmitter();
+
+emitter.once("welcome", () => {
+    console.log("Welcome to our application!");
+});
+
+// Emit event multiple times
+emitter.emit("welcome");
+emitter.emit("welcome");
+emitter.emit("welcome");
+```
+
+Output:
+
+```
+Welcome to our application!
+```
+
+Why only once?
+
+After the first execution, Node.js automatically removes that listener.
+
+### D. `.off()` — Remove an event listener
+
+Definition: Removes a previously registered event listener.
+
+Syntax:
+
+```
+emitter.off("eventName", listenerFunction);
+```
+
+Example:
+
+```
+const EventEmitter = require("events");
+
+const emitter = new EventEmitter();
+
+// Create a named function
 function greet() {
-    console.log("Hello from the listener!");
+    console.log("Hello!");
 }
 
-// Register the listener
+// Register listener
 emitter.on("greet", greet);
 
-// First emission: listener runs
+// First event
 emitter.emit("greet");
 
-// Remove the exact listener function
+// Remove listener
 emitter.off("greet", greet);
 
-// Second emission: listener does not run
+// Second event
 emitter.emit("greet");
 
-console.log("Listener removed.");
+console.log("Listener removed!");
 ```
 
-**Output:**
+Output:
 
-```text
-Hello from the listener!
-Listener removed.
+```
+Hello!
+Listener removed!
 ```
 
-### ⚠️ Important: function reference
+Notice that the second event does not print `Hello!`.
 
-This will not remove the original listener:
+Important: `.off()` needs the same function reference that you originally registered.
 
-```js
-emitter.off("greet", () => {
-    console.log("Hello from the listener!");
-});
+### E. Custom Events 🛠️
+
+Definition: Custom events are event names that we define according to our application requirements.
+
+Examples:
+
+- `userRegistered`
+- `orderPlaced`
+- `paymentCompleted`
+- `fileUploaded`
+- `messageReceived`
+
+Example:
+
 ```
-
-The arrow function above is a new function object. It is not the same function reference that was registered.
-
----
-
-## 7. 🛠️ Custom Events
-
-A **custom event** is an event name that you define for your application.
-
-Examples: `userRegistered`, `orderPlaced`, `paymentCompleted`, `fileUploaded`, `notificationSent`.
-
-### Example: User Registration Event
-
-```js
 const EventEmitter = require("events");
 
 const emitter = new EventEmitter();
 
-// Listen for a custom event
+// Register custom event
 emitter.on("userRegistered", () => {
-    console.log("A new user has registered!");
+    console.log("New user registered!");
 });
 
-// Trigger the custom event
+// Trigger custom event
 emitter.emit("userRegistered");
 ```
 
-**Output:**
+Output:
 
-```text
-A new user has registered!
+```
+New user registered!
 ```
 
----
+### F. Passing data through custom events 📩
 
-## 8. 📩 Passing Data with Events
+We can also pass data through `.emit()`.
 
-You can pass arguments to listeners through `emit()`. The listener callback receives those arguments.
-
-### Example: Pass user information
-
-```js
+```
 const EventEmitter = require("events");
 
 const emitter = new EventEmitter();
 
-// Receive data in the listener
-emitter.on("userRegistered", (name, email) => {
-    console.log("User Name:", name);
-    console.log("User Email:", email);
+// Listen and receive data
+emitter.on("userRegistered", (user) => {
+    console.log("User ID:", user.id);
+    console.log("Name:", user.name);
+    console.log("Email:", user.email);
 });
 
-// Pass values while emitting the event
-emitter.emit("userRegistered", "Ramesh", "ramesh@example.com");
-```
-
-**Output:**
-
-```text
-User Name: Ramesh
-User Email: ramesh@example.com
-```
-
-### Passing an object
-
-```js
-const EventEmitter = require("events");
-
-const emitter = new EventEmitter();
-
-emitter.on("orderPlaced", (order) => {
-    console.log("Order ID:", order.id);
-    console.log("Product:", order.product);
-    console.log("Amount:", order.amount);
-});
-
-emitter.emit("orderPlaced", {
+// Emit event with an object
+emitter.emit("userRegistered", {
     id: 101,
-    product: "Laptop",
-    amount: 50000
+    name: "Ramesh",
+    email: "ramesh@example.com"
 });
 ```
 
-**Output:**
+Output:
 
-```text
-Order ID: 101
-Product: Laptop
-Amount: 50000
+```
+User ID: 101
+Name: Ramesh
+Email: ramesh@example.com
 ```
 
----
+### G. Event-driven architecture 🏗️
 
-## 9. 🏗️ Event-Driven Architecture
+Let's take an e-commerce application.
 
-**Event-driven architecture (EDA)** is a design approach in which application components communicate by producing and responding to events.
+When a customer places an order, multiple components may need to respond.
 
-Instead of one component directly controlling every other component, a component can announce that something happened. Other components can listen and react.
+[System Design in 2026: The Architecture Patterns Worth Drawing | Chamuka DrawIt](https://images.openai.com/static-rsc-4/cmAc_FbnBNP7B6wwf6d9AXR07Y8x2bbJg66W7zjUroTynXVACJ3si2cucfUz-N2ZUXuYLsN-ngv4IJM9jBrxGqbRxptAg0JTHEuy8gwixB_ufCTukX5tHf_msjbhG2TJ5XmUfWL3gVhh-vJyRu5T8ChaznHh8Veb39vpVX6Zcsw?purpose=inline)
 
-### 🛒 E-commerce order example
+[chamuka.ai](https://www.chamuka.ai/blog/system-design-2026?utm_source=chatgpt.com)
 
-When a customer places an order:
+Architecture flow:
 
-1. The order service creates an order.
-2. It emits an `orderPlaced` event.
-3. The notification handler sends a confirmation.
-4. The inventory handler updates stock.
-5. The analytics handler records the order.
-
-### Event flow
-
-```text
-             Customer places order
-                       |
-                       v
-                 Order Service
-                       |
-                       v
-              Emit "orderPlaced"
-                       |
-          +------------+------------+
-          |            |            |
-          v            v            v
-     Notification  Inventory    Analytics
-       Handler      Handler      Handler
-          |            |            |
-          v            v            v
-      Send email   Update stock  Record sale
+```
+             Customer
+                 |
+                 v
+           Order Service
+                 |
+                 v
+       Emit "orderPlaced"
+                 |
+       +---------+---------+
+       |         |         |
+       v         v         v
+   Notification Inventory Analytics
+      Service    Service   Service
+       |         |         |
+       v         v         v
+   Send Email Update Stock Record Sale
 ```
 
-### Node.js demonstration
+Example:
 
-```js
+```
 const EventEmitter = require("events");
 
 const orderEmitter = new EventEmitter();
 
-// Notification handler
+// Notification listener
 orderEmitter.on("orderPlaced", (order) => {
-    console.log(`Notification: Order ${order.id} confirmed.`);
+    console.log(`Email sent for order ${order.id}`);
 });
 
-// Inventory handler
+// Inventory listener
 orderEmitter.on("orderPlaced", (order) => {
-    console.log(`Inventory: Updating stock for ${order.product}.`);
+    console.log(`Stock updated for ${order.product}`);
 });
 
-// Analytics handler
+// Analytics listener
 orderEmitter.on("orderPlaced", (order) => {
-    console.log(`Analytics: Recorded order amount ${order.amount}.`);
+    console.log(`Sales recorded: ${order.amount}`);
 });
 
-// Order service emits the event
+// Order data
 const order = {
-    id: 501,
+    id: 101,
     product: "Laptop",
     amount: 50000
 };
 
+// Emit order event
 orderEmitter.emit("orderPlaced", order);
 ```
 
-**Output:**
+Output:
 
-```text
-Notification: Order 501 confirmed.
-Inventory: Updating stock for Laptop.
-Analytics: Recorded order amount 50000.
+```
+Email sent for order 101
+Stock updated for Laptop
+Sales recorded: 50000
 ```
 
-### ✅ Benefits
+Professional understanding: Node.js EventEmitter handles events inside the same Node.js process. For communication between separate applications or servers, systems commonly use message brokers such as RabbitMQ or Apache Kafka.
 
-- Components can be loosely coupled.
-- Multiple listeners can respond to one event.
-- New event handlers can be added without changing the event producer.
-- Application workflows can be easier to organize.
+## 11. Common mistakes ⚠️
 
-### ⚠️ Important distinction
+### Mistake 1: Emitting before registering
 
-Node.js `EventEmitter` is an **in-process** event mechanism. It is not automatically a distributed message broker. For communication between separate services or machines, systems may use tools such as RabbitMQ, Apache Kafka, or cloud messaging services.
+Wrong
 
----
+```
+emitter.emit("greet");
 
-## 10. 💻 Practical Example — User Activity Event Manager
+emitter.on("greet", () => {
+    console.log("Hello!");
+});
+```
 
-Create a file named `user-events.js`.
+The listener misses the earlier event.
 
-```js
-// Import Node.js EventEmitter
-const EventEmitter = require("events");
+Correct
 
-// Create an event emitter instance
-const userEvents = new EventEmitter();
-
-// Listener 1: User login
-function handleLogin(username) {
-    console.log(`✅ ${username} logged in successfully.`);
-}
-
-// Listener 2: User logout
-function handleLogout(username) {
-    console.log(`👋 ${username} logged out.`);
-}
-
-// Register listeners
-userEvents.on("login", handleLogin);
-userEvents.on("logout", handleLogout);
-
-// Register a one-time welcome listener
-userEvents.once("firstLogin", (username) => {
-    console.log(`🎉 Welcome for the first time, ${username}!`);
+```
+emitter.on("greet", () => {
+    console.log("Hello!");
 });
 
-// Emit events
-userEvents.emit("firstLogin", "Ramesh");
-userEvents.emit("firstLogin", "Ramesh");
-
-userEvents.emit("login", "Ramesh");
-userEvents.emit("logout", "Ramesh");
-
-// Remove login listener
-userEvents.off("login", handleLogin);
-
-// This login event has no listener now
-userEvents.emit("login", "Ramesh");
-
-console.log("Event demonstration completed.");
+emitter.emit("greet");
 ```
 
-**Expected Output:**
+### Mistake 2: Expecting `.once()` to run repeatedly
 
-```text
-🎉 Welcome for the first time, Ramesh!
-✅ Ramesh logged in successfully.
-👋 Ramesh logged out.
-Event demonstration completed.
+```
+emitter.once("login", callback);
+
+emitter.emit("login");
+emitter.emit("login");
 ```
 
-### ▶️ Run the program
+The listener runs only for the first emission.
 
-```bash
-node user-events.js
+Use `.on()` if the listener should execute every time.
+
+### Mistake 3: Removing a different function reference
+
+Wrong
+
+```
+emitter.on("greet", () => console.log("Hello"));
+
+emitter.off("greet", () => console.log("Hello"));
 ```
 
-No external package installation is necessary.
+These are two different function objects.
 
----
+Correct
 
-## 11. 🧠 Important EventEmitter APIs
+```
+function greet() {
+    console.log("Hello");
+}
 
-| API | Purpose |
-|---|---|
-| `.on()` | Registers a listener |
-| `.emit()` | Triggers an event |
-| `.once()` | Registers a one-time listener |
-| `.off()` | Removes a specific listener |
-| `.removeListener()` | Removes a specific listener; alias of `.off()` |
-| `.removeAllListeners()` | Removes all listeners, or all listeners for one event |
-| `.listenerCount(eventName)` | Returns the number of listeners for an event |
-| `.eventNames()` | Returns event names with registered listeners |
-| `.setMaxListeners(n)` | Sets the maximum listener warning threshold |
+emitter.on("greet", greet);
+emitter.off("greet", greet);
+```
 
-### ⚠️ The special `error` event
+### Mistake 4: Forgetting the special error event
 
-If an `EventEmitter` emits the special `error` event and no `error` listener is registered, Node.js throws the error and the process may exit.
+An emitted `error` event without a registered error listener throws an error.
 
-```js
-const EventEmitter = require("events");
+Correct approach:
 
-const emitter = new EventEmitter();
-
-// Register an error listener
+```
 emitter.on("error", (error) => {
     console.error("Handled error:", error.message);
 });
-
-// Emit an error event
-emitter.emit("error", new Error("Something went wrong"));
 ```
 
-**Output:**
+## 12. Best practices 🏆
 
-```text
-Handled error: Something went wrong
+1. Use meaningful event names such as `userRegistered` and `orderPlaced`.
+2. Register listeners before emitting events.
+3. Use `.once()` for one-time actions.
+4. Use `.off()` when a listener is no longer needed.
+5. Prefer named functions when you need to remove listeners.
+6. Keep event handlers focused on one responsibility.
+7. Handle the special `error` event where appropriate.
+8. Avoid registering duplicate listeners unintentionally.
+9. Avoid putting too much business logic inside one listener.
+10. Remember that EventEmitter is synchronous by default; a long-running listener can delay other listeners.
+
+## 13. Interview questions 🎤
+
+### 🟢 Beginner
+
+1\. What is event-driven programming?
+
+It is a programming approach where code executes in response to events.
+
+2\. What is EventEmitter?
+
+It is a class provided by Node.js's built-in `events` module for creating and handling events.
+
+3\. What is `.on()`?
+
+It registers an event listener.
+
+4\. What is `.emit()`?
+
+It triggers an event.
+
+5\. Is the events module built into Node.js?
+
+Yes. No separate installation is required.
+
+### 🟡 Intermediate
+
+6\. Difference between `.on()` and `.once()`?
+
+`.on()` executes on every matching emission. `.once()` executes only once.
+
+7\. What is `.off()`?
+
+It removes a previously registered listener.
+
+8\. Can multiple listeners listen to the same event?
+
+Yes. All registered listeners are normally called in registration order.
+
+9\. Can we pass data through `.emit()`?
+
+Yes. We can pass strings, numbers, objects, and other arguments.
+
+10\. What does `.emit()` return?
+
+A Boolean indicating whether at least one listener was called.
+
+### 🔴 Advanced
+
+11\. What is event-driven architecture?
+
+An architecture where components communicate by producing and responding to events.
+
+12\. Is EventEmitter asynchronous?
+
+EventEmitter listeners are called synchronously by default. A listener can schedule asynchronous work, but that does not make the initial event dispatch asynchronous.
+
+13\. What happens when an error event has no listener?
+
+Node.js throws the error; the process may exit if it is not handled.
+
+14\. What is the difference between EventEmitter and Kafka?
+
+EventEmitter is an in-process event mechanism. Kafka is a distributed event-streaming platform that allows communication across applications and machines.
+
+## 14. Practice problems 🏋️
+
+Try these in VS Code.
+
+Beginner
+
+1. Create an EventEmitter instance.
+2. Register a `greet` event.
+3. Emit the `greet` event three times.
+4. Create two listeners for the same event.
+5. Create a `login` event using `.once()`.
+
+Intermediate
+
+6. Create a `studentRegistered` event and pass student details.
+7. Remove a listener using `.off()`.
+8. Create a `paymentCompleted` custom event.
+9. Use `.emit()` and check its Boolean return value.
+10. Register listeners for `orderPlaced`.
+
+Advanced
+
+11. Create an order system with notification, inventory, and analytics listeners.
+12. Use `.once()` for the first order.
+13. Remove the analytics listener after a specified operation.
+14. Add an error listener and emit an error event.
+
+## 15. Mini challenge 🚀
+
+Your independent task
+
+### Build a Student Registration Event Manager
+
+Create a file named `student-events.js`.
+
+Requirements:
+
+1. Create an EventEmitter instance.
+2. Register a custom event called `studentRegistered`.
+3. Pass student ID, name, and course through `.emit()`.
+4. Add three listeners:
+   - Print a registration confirmation.
+   - Print course information.
+   - Print a welcome message.
+5. Use `.once()` for a first-time welcome event.
+6. Remove one listener using `.off()`.
+7. Emit the event again and observe the output.
+
+Expected output format:
+
+```
+Student registered successfully!
+Student: Ramesh
+Course: Node.js
+Welcome to the course!
 ```
 
----
+Try to write the code independently before looking at earlier examples.
 
-## 12. 🏋️ Practice Exercises
+## 16. Chapter summary ✅
 
-### 🟢 Beginner Level
+| Topic                     | What you learned                      |
+| ------------------------- | ------------------------------------- |
+| Event-driven programming  | Code responds to events               |
+| EventEmitter              | Creates and manages events            |
+| `.on()`                   | Registers a listener                  |
+| `.emit()`                 | Triggers an event                     |
+| `.once()`                 | Executes a listener once              |
+| `.off()`                  | Removes a listener                    |
+| Custom events             | Application-defined events            |
+| Event-driven architecture | Components communicate through events |
 
-1. Import the `events` module.
-2. Create an `EventEmitter` instance.
-3. Register a `greet` event using `.on()`.
-4. Trigger the event using `.emit()`.
-5. Register two listeners for the same event.
+Main concept: EventEmitter allows different parts of a Node.js application to respond to events without directly depending on each other.
 
-### 🟡 Intermediate Level
+## 17. Quick revision ⚡
 
-1. Create a custom `studentRegistered` event.
-2. Pass a student's name and course through `.emit()`.
-3. Use `.once()` for a first-time welcome message.
-4. Register a listener and remove it with `.off()`.
-5. Compare the output before and after removing the listener.
-
-### 🔴 Mini Project — Order Event Manager
-
-Build a small order event manager with these requirements:
-
-- Create an `EventEmitter` instance.
-- Register an `orderPlaced` event.
-- Pass order ID, product name, and amount.
-- Add separate listeners for notification, inventory, and analytics.
-- Register a one-time `firstOrder` event.
-- Remove one listener using `.off()`.
-- Print clear messages to follow the event flow.
-
----
-
-## 13. 🎤 Interview Questions
-
-1. What is event-driven programming?
-2. What is an event in Node.js?
-3. What is the `events` module?
-4. What is `EventEmitter`?
-5. What is the purpose of `.on()`?
-6. What is the purpose of `.emit()`?
-7. What is the difference between `.on()` and `.once()`?
-8. How do you remove an event listener?
-9. Why should you use a named function when removing a listener?
-10. Can multiple listeners listen to the same event?
-11. Can you pass arguments through `.emit()`?
-12. What is event-driven architecture?
-13. Is EventEmitter a distributed messaging system?
-14. What happens when an `error` event is emitted without an error listener?
-
----
-
-## 14. ✅ Chapter Summary
-
-In this chapter, you learned:
-
-- 🔄 Event-driven programming and its basic idea.
-- 📦 The built-in Node.js `events` module.
-- 👂 How to register listeners with `.on()`.
-- 📢 How to trigger events with `.emit()`.
-- ☝️ How to register one-time listeners with `.once()`.
-- 🚫 How to remove listeners with `.off()`.
-- 🛠️ How to create custom events.
-- 📩 How to pass data through events.
-- 🏗️ How event-driven architecture organizes application components.
-
-### ⚡ Quick Revision
-
-```js
+```
 const EventEmitter = require("events");
+
+// Create emitter
 const emitter = new EventEmitter();
 
+// Named listener
 function greet(name) {
-    console.log(`Hello, ${name}!`);
+    console.log(`Hello ${name}!`);
 }
 
-emitter.on("greet", greet);       // Listen
-emitter.emit("greet", "Ramesh");  // Trigger
-emitter.once("welcome", greet);   // Listen only once
-emitter.off("greet", greet);      // Remove listener
+// Register listener
+emitter.on("greet", greet);
+
+// Trigger event
+emitter.emit("greet", "Ramesh");
+
+// Register one-time listener
+emitter.once("welcome", () => {
+    console.log("Welcome!");
+});
+
+// Trigger one-time event
+emitter.emit("welcome");
+
+// Remove listener
+emitter.off("greet", greet);
 ```
 
----
+### Remember these four methods
 
-**🎯 Next Chapter:** Chapter 11 — Node.js URL Module
+| Method    | Meaning         |
+| --------- | --------------- |
+| `.on()`   | Listen          |
+| `.emit()` | Trigger         |
+| `.once()` | Listen once     |
+| `.off()`  | Remove listener |
 
-Keep practising each example in VS Code before moving to the next chapter!
+Chapter 10 lesson complete
+
+STOP — Practise this chapter and solve the mini challenge.
+
+Type NEXT when you are ready for Chapter 11 — Node.js URL Module.
